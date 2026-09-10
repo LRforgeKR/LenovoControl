@@ -1,0 +1,47 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore LenovoControl.sln
+
+      - name: Build
+        run: dotnet build LenovoControl.sln -c Release --no-restore
+
+      - name: Publish portable executable
+        run: >
+          dotnet publish
+          src/LenovoControl/LenovoControl.csproj
+          -c Release
+          -r win-x64
+          --self-contained false
+          -p:PublishSingleFile=true
+          -p:DebugType=None
+          -p:DebugSymbols=false
+          -o release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LenovoControl-win-x64
+          path: release/
