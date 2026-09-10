@@ -7,13 +7,18 @@ internal sealed class TrayApplicationContext : ApplicationContext
 {
     private readonly NotifyIcon _trayIcon;
     private readonly ContextMenuStrip _menu;
+    private readonly Icon _applicationIcon;
 
     private readonly ToolStripMenuItem _batteryItem;
     private readonly ToolStripMenuItem _balancedItem;
     private readonly ToolStripMenuItem _performanceItem;
+    private readonly ToolStripMenuItem _startupItem;
 
     public TrayApplicationContext()
     {
+        _applicationIcon =
+            TrayIconFactory.Create();
+
         _batteryItem =
             new ToolStripMenuItem("Battery");
 
@@ -23,6 +28,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _performanceItem =
             new ToolStripMenuItem("Performance");
 
+        _startupItem =
+            new ToolStripMenuItem("Avvia con Windows");
+
         _batteryItem.Click += (_, _) =>
             ActivateProfile(PowerProfile.Battery);
 
@@ -31,6 +39,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
         _performanceItem.Click += (_, _) =>
             ActivateProfile(PowerProfile.Performance);
+
+        _startupItem.Click += (_, _) =>
+            ToggleStartup();
 
         var exitItem =
             new ToolStripMenuItem("Esci");
@@ -51,6 +62,11 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _menu.Items.Add(
             new ToolStripSeparator());
 
+        _menu.Items.Add(_startupItem);
+
+        _menu.Items.Add(
+            new ToolStripSeparator());
+
         _menu.Items.Add(exitItem);
 
         _menu.Opening += (_, _) =>
@@ -58,7 +74,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
 
         _trayIcon = new NotifyIcon
         {
-            Icon = SystemIcons.Application,
+            Icon = _applicationIcon,
             ContextMenuStrip = _menu,
             Visible = true,
             Text = "Lenovo Control"
@@ -97,6 +113,24 @@ internal sealed class TrayApplicationContext : ApplicationContext
         RefreshState();
     }
 
+    private void ToggleStartup()
+    {
+        try
+        {
+            bool newState =
+                !StartupService.IsEnabled();
+
+            StartupService.SetEnabled(newState);
+
+            _startupItem.Checked =
+                StartupService.IsEnabled();
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex.Message);
+        }
+    }
+
     private void RefreshState()
     {
         PowerPlanInfo? battery =
@@ -124,6 +158,9 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _balancedItem.Checked = false;
         _performanceItem.Checked = false;
 
+        _startupItem.Checked =
+            StartupService.IsEnabled();
+
         if (!PowerPlanService.TryGetActivePlan(
                 out Guid activePlan,
                 out _))
@@ -149,7 +186,6 @@ internal sealed class TrayApplicationContext : ApplicationContext
         string tooltip =
             $"Lenovo Control | {name}";
 
-        // NotifyIcon.Text ha un limite Windows.
         _trayIcon.Text =
             tooltip.Length <= 63
                 ? tooltip
@@ -170,6 +206,7 @@ internal sealed class TrayApplicationContext : ApplicationContext
         _trayIcon.Visible = false;
 
         _trayIcon.Dispose();
+        _applicationIcon.Dispose();
         _menu.Dispose();
 
         base.ExitThreadCore();

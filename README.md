@@ -6,7 +6,7 @@ Lenovo Control is a lightweight Windows system-tray utility for switching betwee
 
 ## Version
 
-**0.1.0**
+**0.2.0**
 
 ## Features
 
@@ -18,6 +18,8 @@ Lenovo Control is a lightweight Windows system-tray utility for switching betwee
 - No Windows service
 - No telemetry
 - No administrator privileges required for normal use
+- Optional start with Windows
+- Single-instance protection
 - Lenovo-specific profiles are detected instead of using machine-specific GUIDs
 
 ## Supported profiles
@@ -41,13 +43,11 @@ Lenovo Control does not create, delete or modify power-plan settings.
 
 ## Current limitations
 
-Version 0.1.0 does not include:
+Version 0.2.0 does not include:
 
 - CPU temperature monitoring
 - Lenovo thermal-mode switching
 - synchronization between Windows power plans and Lenovo thermal modes
-- automatic startup with Windows
-- custom tray icon
 
 ## Build
 
@@ -62,3 +62,5 @@ Publish a single-file x64 executable:
 ## License
 
 MIT License.
+
+
